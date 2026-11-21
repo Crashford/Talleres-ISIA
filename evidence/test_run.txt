@@ -1,0 +1,25 @@
+test_24x7_weekend (test_sla_calculator.TestSLACalculator.test_24x7_weekend) ... ok
+test_at_sla_exactly_and_after_breach (test_sla_calculator.TestSLACalculator.test_at_sla_exactly_and_after_breach) ... ok
+test_below_threshold (test_sla_calculator.TestSLACalculator.test_below_threshold) ... ok
+test_friday_after_hours_to_monday (test_sla_calculator.TestSLACalculator.test_friday_after_hours_to_monday) ... ok
+test_friday_to_monday_business (test_sla_calculator.TestSLACalculator.test_friday_to_monday_business) ... ok
+test_invalid_interval (test_sla_calculator.TestSLACalculator.test_invalid_interval) ... ok
+test_invalid_severity (test_sla_calculator.TestSLACalculator.test_invalid_severity) ... ok
+test_multi_day (test_sla_calculator.TestSLACalculator.test_multi_day) ... ok
+test_multiple_weekends (test_sla_calculator.TestSLACalculator.test_multiple_weekends) ... ok
+test_p1_24x7_threshold (test_sla_calculator.TestSLACalculator.test_p1_24x7_threshold) ... ok
+test_resolved_missing_timestamp (test_sla_calculator.TestSLACalculator.test_resolved_missing_timestamp) ... ok
+test_resolved_prevents_escalation_keeps_breach (test_sla_calculator.TestSLACalculator.test_resolved_prevents_escalation_keeps_breach) ... ok
+test_same_day_edges (test_sla_calculator.TestSLACalculator.test_same_day_edges) ... ok
+test_subminute_aggregation (test_sla_calculator.TestSLACalculator.test_subminute_aggregation) ... ok
+test_timezone_consistency (test_sla_calculator.TestSLACalculator.test_timezone_consistency) ... ok
+test_weekend_creation (test_sla_calculator.TestSLACalculator.test_weekend_creation) ... ok
+test_duplicate_keys (test_triage_rules.TestTriageRules.test_duplicate_keys) ... ok
+test_expected_severity_and_component (test_triage_rules.TestTriageRules.test_expected_severity_and_component) ... ok
+test_key_is_stable_across_case_and_accents (test_triage_rules.TestTriageRules.test_key_is_stable_across_case_and_accents) ... ok
+test_subjective_urgency_does_not_raise_severity (test_triage_rules.TestTriageRules.test_subjective_urgency_does_not_raise_severity) ... ok
+
+----------------------------------------------------------------------
+Ran 20 tests in 0.001s
+
+OK

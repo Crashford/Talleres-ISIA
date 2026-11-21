@@ -1,0 +1,7 @@
+=== Validación demostrativa de SLA ===
+DEMO-1: P2, minutos=120, esperados=120, escalamiento=False, incumplido=False OK
+DEMO-2: P2, minutos=30, esperados=30, escalamiento=False, incumplido=False OK
+DEMO-3: P3, minutos=60, esperados=60, escalamiento=False, incumplido=False OK
+DEMO-4: P2, minutos=360, esperados=360, escalamiento=True, incumplido=False OK
+DEMO-5: P0, minutos=3840, esperados=3840, escalamiento=True, incumplido=True OK
+DEMO-6: P1, minutos=180, esperados=180, escalamiento=True, incumplido=False OK

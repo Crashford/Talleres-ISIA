@@ -1,0 +1,92 @@
+====================================================================================
+ AUDITORÍA DE CONTEXT ENGINEERING: Símbolo objetivo `classify_incident_report`
+ Tokenizador activo: estimador-bpe-local (ejecuta con `uv run` para tiktoken exacto)
+====================================================================================
+Estrategia                             | Alcance            | Caracteres | Tokens
+------------------------------------------------------------------------------------
+1. Fuerza Bruta (glob + read todo)     | 9 archivos         | 40318      | 15207 tokens
+2. Búsqueda Textual (grep + read .py)  | 2 archivos .py     | 7977       | 2988 tokens
+3. Semántica vía LSP (AST/Symbols)     | Definición+Refs    | 2984       | 1038 tokens
+------------------------------------------------------------------------------------
+-> Reducción LSP vs. Fuerza Bruta (`glob` + `read`): 93.2% menos tokens
+-> Reducción LSP vs. Búsqueda (`grep` + `read` .py): 65.3% menos tokens
+
+=== Payload Semántico Extraído estilo LSP (Listo para inyectar al LLM) ===
+<lsp_context symbol="classify_incident_report">
+  <!-- 1. Definiciones de Tipos y Políticas (LSP Hover / Type Definition) -->
+# [LSP textDocument/hover type] src/models.py:12
+class SLARule:
+    """Define el acuerdo de nivel de servicio (SLA) para un nivel de severidad."""
+
+    severity: SeverityLevel
+    max_resolution_minutes: int
+    operates_24x7: bool
+    escalation_threshold_ratio: float = 0.75
+
+# [LSP textDocument/hover type] src/models.py:22
+class Incident:
+    """Representa un incidente registrado en la plataforma IncidentOps."""
+
+    incident_id: str
+    title: str
+    component: str
+    severity: SeverityLevel
+    status: IncidentStatus
+    created_at: datetime
+    resolved_at: Optional[datetime] = None
+
+# [LSP textDocument/hover type] src/models.py:35
+class SLAEvaluation:
+    """Resultado determinista de la evaluación de SLA de un incidente."""
+
+    incident_id: str
+    severity: SeverityLevel
+    elapsed_minutes: int
+    allowed_minutes: int
+    remaining_minutes: int
+    is_breached: bool
+    requires_escalation: bool
+
+# [LSP textDocument/hover type] src/models.py:48
+class TriageResult:
+    """Resultado estructurado producido por el clasificador de triaje con IA."""
+
+    incident_id: str
+    severity: SeverityLevel
+    component: str
+    rationale: str
+    consistency_ratio: float = 1.0
+    recommended_team: Literal["Backend-Core", "Platform-SRE", "Data-DBA", "Security-IAM"] = "Backend-Core"
+    duplicate_group_key: str = ""
+
+# [LSP textDocument/hover symbol] src/sla_calculator.py:12
+SLA_POLICY_TABLE: Dict[SeverityLevel, SLARule] = {
+    "P0": SLARule(severity="P0", max_resolution_minutes=60, operates_24x7=True),
+    "P1": SLARule(severity="P1", max_resolution_minutes=240, operates_24x7=True),
+    "P2": SLARule(severity="P2", max_resolution_minutes=480, operates_24x7=False),
+    "P3": SLARule(severity="P3", max_resolution_minutes=1440, operates_24x7=False),
+}
+
+  <!-- 2. Definición Exacta del Símbolo (LSP GoToDefinition) -->
+# [LSP textDocument/definition] src/triage_rules.py:95
+def classify_incident_report(incident_id: str, raw_text: str) -> TriageResult:
+    """Clasifica un reporte sin basarse en palabras de urgencia subjetiva."""
+    if not isinstance(raw_text, str):
+        raise TypeError("raw_text debe ser una cadena")
+    text = _normalize(raw_text)
+    severity, component, symptom, rationale = _classify(text)
+    return TriageResult(
+        incident_id=incident_id,
+        severity=severity,
+        component=component,
+        rationale=rationale,
+        recommended_team=COMPONENT_TEAMS[component],
+        duplicate_group_key=f"{component}:{symptom}",
+    )
+
+  <!-- 3. Referencias de Invocación en el Proyecto (LSP FindReferences) -->
+# [LSP textDocument/references] src/triage_rules.py:117
+  L116:     for item in incidents:
+  L117:         result = classify_incident_report(item["id"], item["raw_text"])
+  L118:         print(f"{result.incident_id:<10} {result.severity:<5} {result.component:<23} "
+</lsp_context>
