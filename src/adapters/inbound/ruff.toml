@@ -1,0 +1,14 @@
+extend = "../../../pyproject.toml"
+
+[lint.flake8-tidy-imports]
+ban-relative-imports = "parents"
+
+[lint.flake8-tidy-imports.banned-api]
+"src.adapters.outbound.sqlite_repository".msg = "Usar exclusivamente la fábrica de salida."
+"src.incident_repository".msg = "No importar repositorios concretos."
+"src.domain.triage_rules".msg = "Delegar en IncidentService."
+"src.domain.sla_calculator".msg = "Delegar en IncidentService."
+"sqlite3".msg = "La persistencia pertenece a adaptadores secundarios."
+"sqlalchemy".msg = "La persistencia pertenece a adaptadores secundarios."
+"psycopg".msg = "La persistencia pertenece a adaptadores secundarios."
+"psycopg2".msg = "La persistencia pertenece a adaptadores secundarios."

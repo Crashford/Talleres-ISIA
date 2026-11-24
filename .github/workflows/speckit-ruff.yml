@@ -1,0 +1,27 @@
+name: Instalar Ruff (Semana 2)
+on:
+  push:
+    branches: [practica-guiada-sdd-semana-2]
+    paths: [.github/workflows/speckit-ruff.yml]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  ruff:
+    if: github.ref == 'refs/heads/practica-guiada-sdd-semana-2'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Incorporar Ruff como dependencia de desarrollo
+        run: |
+          uv add --dev ruff
+          uv run ruff --version
+      - name: Publicar únicamente dependencias
+        run: |
+          git add pyproject.toml uv.lock
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "build: instalar Ruff con uv add --dev ruff"
+          git push origin HEAD:refs/heads/practica-guiada-sdd-semana-2

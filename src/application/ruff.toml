@@ -1,0 +1,20 @@
+extend = "../../pyproject.toml"
+
+[lint.flake8-tidy-imports]
+ban-relative-imports = "parents"
+
+[lint.flake8-tidy-imports.banned-api]
+"src.adapters".msg = "Aplicación solo conoce puertos y dominio."
+"src.incident_repository".msg = "No importar persistencia concreta."
+"src.context_audit".msg = "No importar herramientas externas al núcleo."
+"fastapi".msg = "Aplicación independiente de frameworks y drivers."
+"pydantic".msg = "Aplicación independiente de frameworks y drivers."
+"typer".msg = "Aplicación independiente de frameworks y drivers."
+"sqlite3".msg = "Aplicación independiente de frameworks y drivers."
+"sqlalchemy".msg = "Aplicación independiente de frameworks y drivers."
+"psycopg".msg = "Aplicación independiente de frameworks y drivers."
+"psycopg2".msg = "Aplicación independiente de frameworks y drivers."
+"httpx".msg = "Aplicación independiente de frameworks y drivers."
+"uvicorn".msg = "Aplicación independiente de frameworks y drivers."
+"requests".msg = "Aplicación independiente de frameworks y drivers."
+"tiktoken".msg = "Aplicación independiente de frameworks y drivers."

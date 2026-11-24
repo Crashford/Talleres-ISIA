@@ -3,7 +3,7 @@ import json
 import unittest
 from collections import defaultdict
 
-from src.triage_rules import SAMPLE_DATA_PATH, classify_incident_report
+from src.domain.triage_rules import SAMPLE_DATA_PATH, classify_incident_report
 
 
 class TestTriageRules(unittest.TestCase):

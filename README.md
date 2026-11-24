@@ -1,4 +1,4 @@
-# IncidentOps — Proyecto Semilla (Semana 1)
+# IncidentOps — Semanas 1 y 2
 
 **IncidentOps** es un sistema backend en Python gestionado con [`uv`](https://docs.astral.sh/uv/) que administra reportes de incidentes de software, evalúa acuerdos de nivel de servicio (**SLA**) sobre SQLite y ejecuta reglas de **triaje y enrutamiento de tickets**.
 
@@ -15,7 +15,6 @@ Este repositorio sirve como banco de pruebas práctico para la **Semana 1** de *
 Para inicializar el entorno virtual e instalar `tiktoken`:
 
 ```bash
-cd week-1/starter-project
 uv sync
 ```
 
@@ -23,7 +22,7 @@ uv sync
 
 ## Comandos Principales para la Práctica
 
-Ejecuta todos los comandos desde `week-1/starter-project/` usando `uv run`:
+Ejecuta todos los comandos desde la raíz del repositorio usando `uv run`:
 
 ### 1. Fase 1 — Auditoría de Tokens con `tiktoken`: Fuerza Bruta vs. `grep` vs. LSP
 Compara cuántos tokens reales consume leer todos los archivos del repositorio (`glob` + `read`), leer los archivos `.py` coincidentes (`grep` + `read`) o extraer únicamente la definición, firmas de tipos y referencias de un símbolo como lo hace un servidor **LSP**:
@@ -41,22 +40,45 @@ uv run python -m src.context_audit --compare-formats
 ```
 
 ### 2. Fase 2 — Benchmark del Repositorio de Incidentes (10,000 registros)
-Ejecuta el escenario con deuda técnica (escaneo completo en memoria y problema de consultas N+1 sobre 10,000 incidentes en SQLite):
+Ejecuta el escenario con deuda técnica (refactorizado en H002 con JOIN y filtrado SQL sobre 10,000 incidentes en SQLite):
 
 ```bash
 uv run python -m src.incident_repository
 ```
 
-### 3. Fase 3 — Auditoría del Motor de Triaje (`src/triage_rules.py`)
+### 3. Fase 3 — Auditoría del Motor de Triaje (`src/domain/triage_rules.py`)
 Evalúa cómo el motor heurístico actual clasifica los 10 incidentes de [`data/sample_incidents.json`](data/sample_incidents.json) e identifica sus fallos de diseño:
 
 ```bash
-uv run python -m src.triage_rules
+uv run python -m src.domain.triage_rules
 ```
 
 ### 4. Verificación del Cálculo Determinista de SLA (`src/sla_calculator.py`)
-Ejecuta la demostración del cálculo de SLA actual (donde se evidencia el bug de horario hábil en tickets `P2`/`P3`):
+Ejecuta la demostración del cálculo de SLA actual (con horario hábil corregido según ADR-002):
 
 ```bash
-uv run python -m src.sla_calculator
+uv run python -m src.domain.sla_calculator
 ```
+
+## Semana 2 — H001: triaje REST y CLI
+
+```bash
+uv sync
+uv run pytest -v
+uv run python -m src.adapters.inbound.cli triage --incident-id INC-1001 --raw-text "HTTP 502 Bad Gateway en pasarela de pagos"
+uv run uvicorn src.adapters.inbound.api.app:app
+```
+
+Swagger: http://127.0.0.1:8000/docs. El endpoint POST /api/v1/incidents/triage acepta incident_id y raw_text como texto y no persiste datos. Consulte specs/001-triage-endpoint-manual.md.
+
+## Semana 2 — H002: resumen de incidentes activos
+
+```bash
+uv sync
+uv run ruff check src/
+uv run pytest -v
+uv run python -m src.adapters.inbound.cli summary
+uv run python -m src.adapters.inbound.cli summary --component payments-gateway --reference-time 2026-11-09T10:00:00
+```
+
+GET /api/v1/incidents/summary recibe component y reference_time opcionales. Devuelve OPEN e IN_PROGRESS, total_active, breached_count e incidents. La BD predeterminada es SQLite en memoria vacía; para consultar datos existentes, establecer DATABASE_URL=sqlite:///incidentops.db en API y CLI. No se siembran datos automáticamente ni se ofrecen endpoints de escritura. Ver specs/002-active-incidents-summary/quickstart.md.

@@ -2,8 +2,8 @@
 import unittest
 from datetime import datetime, timezone, timedelta
 
-from src.models import Incident
-from src.sla_calculator import evaluate_sla_status, get_sla_rule_for_severity
+from src.domain.models import Incident
+from src.domain.sla_calculator import evaluate_sla_status, get_sla_rule_for_severity
 
 
 class TestSLACalculator(unittest.TestCase):
