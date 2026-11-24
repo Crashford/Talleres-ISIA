@@ -9,9 +9,9 @@ import unicodedata
 from pathlib import Path
 from typing import Dict, List, Tuple
 
-from src.models import SeverityLevel, TriageResult
+from src.domain.models import SeverityLevel, TriageResult
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SAMPLE_DATA_PATH = PROJECT_ROOT / "data" / "sample_incidents.json"
 
 # Componentes compatibles con los identificadores ya usados en el repositorio.
@@ -70,7 +70,7 @@ def _classify(text: str) -> Tuple[SeverityLevel, str, str, str]:
             reason = ("Indisponibilidad global de pagos reportada."
                       if _has(text, "todas las transacciones", "ningun comercio", "todos los comercios")
                       else "Fallo HTTP 502 en servicio crítico de pagos: P0 preventivo; alcance global por confirmar.")
-            return severity, "payments-gateway", "http-502-card-payments", reason
+            return severity, "payments-gateway", "http-502-outage", reason
         return "P2", "payments-gateway", "payment-issue", "Fallo de pago sin alcance global demostrado."
 
     if _has(text, "cuenta", "ingresar", "autenticacion", "bloqueada") and _has(text, "bloqueada", "bloqueo", "ingresar", "acceder"):

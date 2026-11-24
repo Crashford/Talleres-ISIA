@@ -7,7 +7,7 @@ La duración se acumula en segundos y se convierte a minutos completos al final.
 from datetime import datetime, time, timedelta
 from typing import Dict
 
-from src.models import Incident, SLAEvaluation, SLARule, SeverityLevel
+from src.domain.models import Incident, SLAEvaluation, SLARule, SeverityLevel
 
 SLA_POLICY_TABLE: Dict[SeverityLevel, SLARule] = {
     "P0": SLARule(severity="P0", max_resolution_minutes=60, operates_24x7=True),
