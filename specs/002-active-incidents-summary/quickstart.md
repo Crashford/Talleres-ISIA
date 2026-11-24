@@ -1,4 +1,4 @@
-# Quickstart — H002 (después de implementar)
+# Quickstart — H002
 
 Desde la raíz:
 

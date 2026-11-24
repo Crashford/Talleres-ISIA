@@ -2,7 +2,7 @@
 
 **Branch**: `practica-guiada-sdd-semana-2` | **Date**: 2026-11-24 | **Spec**: [spec.md](spec.md)
 
-**Status**: Propuesta, pendiente de aprobación humana.
+**Status**: Aprobado e implementado; ver evidence/H002-verificacion.md.
 
 ## Summary
 
@@ -30,7 +30,7 @@ Consultar activos y SLA por REST y CLI mediante IncidentService; extraer persist
 | IV — Paridad y BDD | Mismo servicio y JSON, referencia fija en pruebas, cobertura E001–E004 y regresiones. |
 | V — Calidad | Ruff jerárquico, pytest y uv; persistencia SQLite parametrizada. |
 
-**Gate de diseño**: conforme, condicionado a aprobación de las decisiones de research.md y verificación automatizada después de implementar.
+**Gate de diseño**: conforme; decisiones aprobadas por el usuario y verificación Ruff/pytest exitosa en CI.
 
 ## Project Structure
 

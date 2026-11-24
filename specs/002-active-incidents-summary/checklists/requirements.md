@@ -11,6 +11,6 @@
 - [x] Decisiones expresas de la guía registradas.
 - [x] Sin tablas SQL, nombres de clases Python ni arquitectura en escenarios de negocio.
 - [x] H003 y H004 fuera del alcance.
-- [ ] Aprobación humana del plan y decisiones técnicas complementarias.
+- [x] Aprobación humana del plan y decisiones técnicas complementarias.
 
 Validación documental realizada por ChatGPT sobre las plantillas instaladas; no se ejecutó el comando interactivo /speckit.specify ni /speckit.clarify.

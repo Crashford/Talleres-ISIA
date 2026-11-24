@@ -16,6 +16,6 @@ Ambos parámetros opcionales. HTTP 200: JSON con total_active (entero), breached
 uv run python -m src.adapters.inbound.cli summary --component payments-gateway --reference-time 2026-11-09T10:00:00
 ```
 
-Mismo JSON en stdout y código 0. Parámetros opcionales. Entrada inválida: HTTP 422 o mensaje stderr y código 1 para CLI. Las reglas temporales y el filtro exacto se describen en research.md, pendientes de aprobación.
+Mismo JSON en stdout y código 0. Parámetros opcionales. Entrada inválida: HTTP 422 o mensaje stderr y código 1 para CLI. Las reglas temporales y el filtro exacto se describen en research.md, aprobados antes de Build.
 
 El POST /api/v1/incidents/triage y su CLI no cambian.

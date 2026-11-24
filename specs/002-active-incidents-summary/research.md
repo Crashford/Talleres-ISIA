@@ -1,6 +1,6 @@
 # Research — H002
 
-Decisiones técnicas propuestas para revisión humana:
+Decisiones técnicas aprobadas por el usuario antes de Build:
 
 | Decisión | Justificación / alternativas |
 |---|---|
@@ -12,4 +12,4 @@ Decisiones técnicas propuestas para revisión humana:
 | Ciclo de vida de conexión por operación | Evita compartir conexión SQLite entre hilos de FastAPI y garantiza cierre; pruebas REST/CLI usan archivo temporal común. El puerto es inyectable. |
 | Ruff jerárquico | TID251/TID252 cubren imports definidos; no se afirma que por sí solos prueben toda la arquitectura. Complementar con revisión de imports y regresiones. |
 
-No se han escrito funcionalidades H002. Las decisiones de esta tabla se someten a aprobación antes de Build.
+Las decisiones fueron aprobadas antes de Build e implementadas en el commit 3084195; CI confirmó la verificación.

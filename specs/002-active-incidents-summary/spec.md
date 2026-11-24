@@ -1,6 +1,6 @@
 # Feature Specification: H002 — Resumen de incidentes activos
 
-**Feature Branch**: `practica-guiada-sdd-semana-2` | **Created**: 2026-11-24 | **Status**: Clarificada según guía §2.3, pendiente de aprobación del plan
+**Feature Branch**: `practica-guiada-sdd-semana-2` | **Created**: 2026-11-24 | **Status**: Aprobada e implementada; verificación CI exitosa
 
 **Input**: Operaciones necesita consultar desde web y terminal los incidentes activos (OPEN e IN_PROGRESS), total activo, incumplimientos de SLA, detalle y filtro opcional por componente.
 
@@ -69,4 +69,4 @@ Decisiones expresas de la guía (página 13):
 - CLI summary [--component ...] [--reference-time ...].
 - reference_time opcional en ambas interfaces, por defecto instante actual.
 - Respuesta exitosa HTTP 200 / JSON válido: total_active=0, breached_count=0, incidents=[] cuando no existen coincidencias.
-- Se mantienen los cuatro escenarios BDD anteriores. Los detalles técnicos adicionales (formato de fechas, manejo de entradas inválidas y orden) se someten a aprobación en el plan.
+- Se mantienen los cuatro escenarios BDD anteriores. Los detalles técnicos adicionales (formato de fechas, manejo de entradas inválidas y orden) se aprobaron con el plan; ver research.md y contracts/summary.md.
