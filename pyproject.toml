@@ -16,7 +16,11 @@ dependencies = [
 package = false
 
 [dependency-groups]
-dev = ["pytest", "httpx"]
+dev = [
+    "pytest",
+    "httpx",
+    "ruff>=0.17.6",
+]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
