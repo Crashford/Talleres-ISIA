@@ -1,0 +1,21 @@
+extend = "../../pyproject.toml"
+
+[lint.flake8-tidy-imports]
+ban-relative-imports = "parents"
+
+[lint.flake8-tidy-imports.banned-api]
+"src.application".msg = "Dominio independiente de aplicación."
+"src.adapters".msg = "Dominio independiente de adaptadores."
+"src.incident_repository".msg = "Dominio independiente de persistencia."
+"src.context_audit".msg = "Dominio independiente de herramientas."
+"fastapi".msg = "Solo stdlib y dominio; sin frameworks ni drivers."
+"pydantic".msg = "Solo stdlib y dominio; sin frameworks ni drivers."
+"typer".msg = "Solo stdlib y dominio; sin frameworks ni drivers."
+"sqlite3".msg = "Solo stdlib y dominio; sin frameworks ni drivers."
+"sqlalchemy".msg = "Solo stdlib y dominio; sin frameworks ni drivers."
+"psycopg".msg = "Solo stdlib y dominio; sin frameworks ni drivers."
+"psycopg2".msg = "Solo stdlib y dominio; sin frameworks ni drivers."
+"httpx".msg = "Solo stdlib y dominio; sin frameworks ni drivers."
+"uvicorn".msg = "Solo stdlib y dominio; sin frameworks ni drivers."
+"requests".msg = "Solo stdlib y dominio; sin frameworks ni drivers."
+"tiktoken".msg = "Solo stdlib y dominio; sin frameworks ni drivers."

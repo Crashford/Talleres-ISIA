@@ -40,7 +40,7 @@ uv run python -m src.context_audit --compare-formats
 ```
 
 ### 2. Fase 2 — Benchmark del Repositorio de Incidentes (10,000 registros)
-Ejecuta el escenario con deuda técnica (escaneo completo en memoria y problema de consultas N+1 sobre 10,000 incidentes en SQLite):
+Ejecuta el escenario con deuda técnica (refactorizado en H002 con JOIN y filtrado SQL sobre 10,000 incidentes en SQLite):
 
 ```bash
 uv run python -m src.incident_repository
@@ -70,3 +70,15 @@ uv run uvicorn src.adapters.inbound.api.app:app
 ```
 
 Swagger: http://127.0.0.1:8000/docs. El endpoint POST /api/v1/incidents/triage acepta incident_id y raw_text como texto y no persiste datos. Consulte specs/001-triage-endpoint-manual.md.
+
+## Semana 2 — H002: resumen de incidentes activos
+
+```bash
+uv sync
+uv run ruff check src/
+uv run pytest -v
+uv run python -m src.adapters.inbound.cli summary
+uv run python -m src.adapters.inbound.cli summary --component payments-gateway --reference-time 2026-11-09T10:00:00
+```
+
+GET /api/v1/incidents/summary recibe component y reference_time opcionales. Devuelve OPEN e IN_PROGRESS, total_active, breached_count e incidents. La BD predeterminada es SQLite en memoria vacía; para consultar datos existentes, establecer DATABASE_URL=sqlite:///incidentops.db en API y CLI. No se siembran datos automáticamente ni se ofrecen endpoints de escritura. Ver specs/002-active-incidents-summary/quickstart.md.

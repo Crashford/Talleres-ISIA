@@ -1,4 +1,4 @@
-name: IncidentOps H001 CI
+name: IncidentOps H001-H002 CI
 
 on:
   push:
@@ -24,7 +24,9 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Sincronizar dependencias
-        run: uv sync
+        run: uv sync --locked
+      - name: Ruff y fronteras hexagonales
+        run: uv run ruff check src/
       - name: Pruebas BDD y regresiones
         run: uv run pytest -v
       - name: Verificar motores de dominio
@@ -33,6 +35,8 @@ jobs:
           uv run python -m src.domain.sla_calculator
       - name: Verificar CLI
         run: uv run python -m src.adapters.inbound.cli triage --incident-id INC-1001 --raw-text "HTTP 502 Bad Gateway en pasarela de pagos"
+      - name: Verificar CLI resumen
+        run: uv run python -m src.adapters.inbound.cli summary
       - name: Verificar benchmark heredado
         run: uv run python -m src.incident_repository --records 10000
       - name: Verificar auditoría heredada
