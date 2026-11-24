@@ -1,0 +1,44 @@
+name: IncidentOps H001 CI
+
+on:
+  push:
+    branches: [main, practica-guiada-sdd-semana-2]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Sincronizar dependencias
+        run: uv sync
+      - name: Pruebas BDD y regresiones
+        run: uv run pytest -v
+      - name: Verificar motores de dominio
+        run: |
+          uv run python -m src.domain.triage_rules
+          uv run python -m src.domain.sla_calculator
+      - name: Verificar CLI
+        run: uv run python -m src.adapters.inbound.cli triage --incident-id INC-1001 --raw-text "HTTP 502 Bad Gateway en pasarela de pagos"
+      - name: Verificar benchmark heredado
+        run: uv run python -m src.incident_repository --records 10000
+      - name: Verificar auditoría heredada
+        run: uv run python -m src.context_audit --symbol classify_incident_report
+      - name: Conservar lockfile resuelto
+        uses: actions/upload-artifact@v4
+        with:
+          name: uv-lock-python-${{ matrix.python-version }}
+          path: uv.lock
