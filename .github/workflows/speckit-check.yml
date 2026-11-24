@@ -1,0 +1,31 @@
+name: Verificar artefactos SDD H002
+on:
+  push:
+    branches: [practica-guiada-sdd-semana-2]
+    paths:
+      - 'specs/002-active-incidents-summary/**'
+      - '.specify/**'
+      - '.github/workflows/speckit-check.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  prerequisites:
+    runs-on: ubuntu-latest
+    env:
+      SPECIFY_FEATURE_DIRECTORY: specs/002-active-incidents-summary
+    steps:
+      - uses: actions/checkout@v4
+      - name: Resolver plantillas oficiales
+        run: |
+          for template in constitution-template spec-template plan-template tasks-template; do
+            bash .specify/scripts/bash/resolve-template.sh "$template" --json > "/tmp/$template.json"
+            python -c 'import json,sys; assert json.load(open(sys.argv[1]))["TEMPLATE_CONTENT"]' "/tmp/$template.json"
+          done
+      - name: Verificar prerrequisitos oficiales Spec Kit
+        run: bash .specify/scripts/bash/check-prerequisites.sh --json --require-spec --require-tasks --include-tasks
+      - name: Verificar presencia de documentación
+        run: |
+          for file in spec.md plan.md tasks.md research.md data-model.md quickstart.md contracts/summary.md analysis.md; do
+            test -s "specs/002-active-incidents-summary/$file"
+          done
