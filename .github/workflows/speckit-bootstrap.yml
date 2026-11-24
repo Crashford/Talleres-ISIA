@@ -1,0 +1,55 @@
+name: Inicializar Spec Kit (Semana 2)
+on:
+  push:
+    branches: [practica-guiada-sdd-semana-2]
+    paths: [.github/workflows/speckit-bootstrap.yml]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  bootstrap:
+    if: github.ref == 'refs/heads/practica-guiada-sdd-semana-2'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Instalar Specify CLI oficial (versión fijada)
+        run: |
+          uv tool install specify-cli --from git+https://github.com/github/spec-kit.git@v1.4.4
+          specify version
+      - name: Inicializar integración OpenCode sin interacción
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          specify init --here --integration opencode --force --non-interactive --ignore-agent-tools --script sh --integration-options="--events false"
+          test -f .specify/memory/constitution.md
+          test -f .opencode/commands/speckit.specify.md
+          find .specify .opencode -type f | sort
+          git status --short
+      - name: Actualizar lockfile de H001
+        run: uv lock
+      - name: Verificar y publicar únicamente archivos autorizados
+        run: |
+          git diff --exit-code -- src tests docs specs AGENTS.md pyproject.toml README.md
+          git add .specify .opencode uv.lock
+          for path in opencode.json .ignore; do
+            if [ -f "$path" ]; then git add "$path"; fi
+          done
+          git diff --cached --stat
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: inicializar Spec Kit oficial para OpenCode y actualizar uv.lock"
+          git push origin HEAD:refs/heads/practica-guiada-sdd-semana-2
+      - name: Conservar archivos de inicialización
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: speckit-inicializacion
+          include-hidden-files: true
+          path: |
+            .specify/
+            .opencode/
+            opencode.json
+            .ignore
+            uv.lock
