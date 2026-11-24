@@ -1,50 +1,67 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+# Constitución de IncidentOps
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Dominio determinista único
+Las entidades, reglas de triaje y cálculo SLA residen en src/domain/ (models.py,
+triage_rules.py y sla_calculator.py). Ninguna capa externa duplica estas reglas.
+La urgencia subjetiva no eleva por sí sola la severidad. Las claves de correlación
+identifican candidatos a duplicados, no confirman causa raíz. Los equipos válidos
+son Backend-Core, Platform-SRE, Data-DBA y Security-IAM.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Arquitectura hexagonal estricta (ADR-003)
+El dominio importa únicamente stdlib y módulos propios. La aplicación importa
+stdlib, dominio y módulos propios; define casos de uso en services.py y puertos
+secundarios mediante typing.Protocol en ports.py cuando exista persistencia.
+Los adaptadores de entrada REST y CLI delegan en IncidentService; no importan
+drivers ni repositorios concretos. La composición usa la fábrica de adaptadores
+de salida. Los adaptadores de salida implementan los puertos y se seleccionan
+mediante DATABASE_URL. MCP es una extensión futura, no un requisito actual.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. Políticas de SLA y estados
+P0: 60 min; P1: 240 min, ambos 24/7. P2: 480 min; P3: 1440 min, ambos
+L-V [08:00, 18:00), sin festivos configurados. Incumplimiento si los minutos
+completos exceden el límite; escalamiento desde el 75% exacto, incluso después
+del vencimiento mientras no se resuelva. RESOLVED usa resolved_at, conserva
+incumplimiento histórico y no escala. Se respetan las reglas de fechas de ADR-002.
+Estados: OPEN, IN_PROGRESS, ESCALATION_REQUIRED y RESOLVED; H002 consulta
+exclusivamente OPEN e IN_PROGRESS.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Paridad y aceptación verificable
+REST y CLI MUST compartir el mismo caso de uso y resultados equivalentes.
+Cada especificación MUST expresar escenarios Given / When / Then en lenguaje de
+negocio, con pruebas de aceptación pytest trazables y almacenamiento aislado
+cuando corresponda. Se conservan las regresiones de hitos anteriores.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. Calidad y simplicidad
+Python >=3.10 gestionado con uv. REST usa FastAPI y Pydantic v2; CLI usa Typer.
+SQLite3 estándar, sin ORM pesado (ADR-001); cualquier cambio de motor requiere
+un ADR previo. No incorporar funcionalidades de hitos futuros. Ruff MUST validar
+las fronteras de imports desde H002; pytest MUST verificar aceptación y regresión.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+## Restricciones técnicas
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+El dominio y la aplicación no dependen de HTTP, CLI, SQLite ni otros frameworks.
+Los adaptadores secundarios son intercambiables; SQLite filtra en SQL mediante
+consultas parametrizadas, JOIN e índice compuesto según ADR-001. Las políticas
+de SLA permanecen en el dominio. Las pruebas no dependen de servicios externos.
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+## Flujo de desarrollo y puertas de calidad
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+Antes de implementar: especificar, clarificar, planificar, desglosar tareas,
+analizar consistencia y obtener aprobación humana. Verificar mediante
+uv run ruff check src/ y uv run pytest -v; conservar evidencia real de resultados.
+AGENTS.md mantiene el manual operativo; ROADMAP.md expresa visión de producto;
+las especificaciones son contratos funcionales; ADRs registran decisiones
+estructurales. No afirmar que un comando o prueba se ejecutó sin evidencia.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+Esta Constitución rige los hitos a partir de su ratificación. Las enmiendas
+requieren revisión humana, justificación, fecha y versión semántica:
+MAJOR para cambios incompatibles; MINOR para nuevos principios o ampliaciones;
+PATCH para aclaraciones. Los ADR aceptados se preservan y se reemplazan mediante
+otro ADR si cambia la decisión. Cada plan y revisión debe comprobar el cumplimiento
+de estos principios; una desviación requiere aprobación y registro explícitos.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2026-11-24 | **Last Amended**: 2026-11-24
