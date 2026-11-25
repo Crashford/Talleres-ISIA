@@ -6,9 +6,15 @@ from fastapi import FastAPI, HTTPException
 
 from src.adapters.inbound.api.schemas import (
     TriageRequest, TriageResponse, ActiveIncidentsSummaryResponse,
+    CreateIncidentRequest, IncidentCreatedResponse, SLAEvaluationResponse,
 )
 from src.adapters.outbound.factory import repository_factory
-from src.application.services import IncidentService, ValidationError
+from src.application.services import (
+    IncidentNotFoundError,
+    IncidentService,
+    PersistentStorageUnavailableError,
+    ValidationError,
+)
 
 
 def create_app(repo_factory=repository_factory) -> FastAPI:
@@ -27,6 +33,28 @@ def create_app(repo_factory=repository_factory) -> FastAPI:
     def summary(component: str | None = None, reference_time: str | None = None) -> dict:
         try:
             return asdict(service.get_active_incidents_summary(component, reference_time))
+        except ValidationError as error:
+            raise HTTPException(status_code=422, detail=str(error)) from error
+
+    @app.post("/api/v1/incidents", response_model=IncidentCreatedResponse, status_code=201)
+    def create_incident(request: CreateIncidentRequest) -> dict:
+        try:
+            result = service.create_incident(
+                request.title, request.raw_text, request.incident_id,
+                request.created_at, request.status,
+            )
+        except PersistentStorageUnavailableError as error:
+            raise HTTPException(status_code=503, detail=str(error)) from error
+        except ValidationError as error:
+            raise HTTPException(status_code=422, detail=str(error)) from error
+        return asdict(result)
+
+    @app.get("/api/v1/incidents/{incident_id}/sla", response_model=SLAEvaluationResponse)
+    def sla(incident_id: str, reference_time: str | None = None) -> dict:
+        try:
+            return asdict(service.evaluate_incident_sla(incident_id, reference_time))
+        except IncidentNotFoundError as error:
+            raise HTTPException(status_code=404, detail=str(error)) from error
         except ValidationError as error:
             raise HTTPException(status_code=422, detail=str(error)) from error
 

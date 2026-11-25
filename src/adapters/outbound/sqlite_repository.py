@@ -12,6 +12,7 @@ class SQLiteIncidentRepository:
     """Una conexión por instancia; usar como gestor de contexto."""
 
     def __init__(self, db_path: str = ":memory:") -> None:
+        self._persistent = db_path != ":memory:"
         self.conn = sqlite3.connect(db_path, timeout=15)
         self.conn.row_factory = sqlite3.Row
         try:
@@ -49,15 +50,22 @@ class SQLiteIncidentRepository:
                     status TEXT NOT NULL,
                     created_at TEXT NOT NULL,
                     resolved_at TEXT,
+                    recommended_team TEXT,
                     duplicate_group_key TEXT
                 )
             """)
             columns = {row["name"] for row in self.conn.execute("PRAGMA table_info(incidents)")}
+            if "recommended_team" not in columns:
+                self.conn.execute("ALTER TABLE incidents ADD COLUMN recommended_team TEXT")
             if "duplicate_group_key" not in columns:
                 self.conn.execute("ALTER TABLE incidents ADD COLUMN duplicate_group_key TEXT")
             self.conn.execute("""
                 CREATE INDEX IF NOT EXISTS idx_incidents_component_status
                 ON incidents(component, status)
+            """)
+            self.conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_incidents_dup_key
+                ON incidents(duplicate_group_key, status)
             """)
             self.conn.executemany("""
                 INSERT INTO sla_policies (severity, max_resolution_minutes, operates_24x7)
@@ -77,36 +85,40 @@ class SQLiteIncidentRepository:
             component=row["component"], severity=row["severity"], status=row["status"],
             created_at=datetime.fromisoformat(row["created_at"]),
             resolved_at=datetime.fromisoformat(row["resolved_at"]) if row["resolved_at"] else None,
+            recommended_team=row["recommended_team"],
+            duplicate_group_key=row["duplicate_group_key"],
         )
 
-    def save_incident(self, incident: Incident, duplicate_group_key: str | None = None) -> None:
+    def supports_persistent_writes(self) -> bool:
+        return self._persistent
+
+    def save_incident(self, incident: Incident, duplicate_group_key: str | None = None) -> bool:
+        key = incident.duplicate_group_key if duplicate_group_key is None else duplicate_group_key
         with self.conn:
-            self.conn.execute("""
+            cursor = self.conn.execute("""
                 INSERT INTO incidents (incident_id, title, component, severity, status,
-                                       created_at, resolved_at, duplicate_group_key)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT(incident_id) DO UPDATE SET
-                    title=excluded.title, component=excluded.component, severity=excluded.severity,
-                    status=excluded.status, created_at=excluded.created_at,
-                    resolved_at=excluded.resolved_at,
-                    duplicate_group_key=COALESCE(excluded.duplicate_group_key, incidents.duplicate_group_key)
+                                       created_at, resolved_at, recommended_team, duplicate_group_key)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(incident_id) DO NOTHING
             """, (incident.incident_id, incident.title, incident.component, incident.severity,
                   incident.status, incident.created_at.isoformat(),
                   incident.resolved_at.isoformat() if incident.resolved_at else None,
-                  duplicate_group_key))
+                  incident.recommended_team, key))
+        return cursor.rowcount == 1
 
     def get_incident(self, incident_id: str) -> Incident | None:
         row = self.conn.execute("SELECT * FROM incidents WHERE incident_id = ?", (incident_id,)).fetchone()
         return self._to_incident(row) if row else None
 
-    def find_open_duplicates(self, duplicate_group_key: str) -> list[Incident]:
+    def find_open_duplicates(self, duplicate_group_key: str, incident_id: str = "") -> list[str]:
         if not duplicate_group_key:
             return []
         rows = self.conn.execute("""
-            SELECT * FROM incidents WHERE duplicate_group_key = ?
-            AND status IN ('OPEN', 'IN_PROGRESS') ORDER BY incident_id
-        """, (duplicate_group_key,))
-        return [self._to_incident(row) for row in rows]
+            SELECT incident_id FROM incidents WHERE duplicate_group_key = ?
+            AND status IN ('OPEN', 'IN_PROGRESS', 'ESCALATION_REQUIRED')
+            AND incident_id <> ? ORDER BY incident_id
+        """, (duplicate_group_key, incident_id))
+        return [row["incident_id"] for row in rows]
 
     def list_active_incidents(self, component_filter: str | None = None) -> list[Incident]:
         sql = """
