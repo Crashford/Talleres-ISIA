@@ -37,6 +37,20 @@ def main() -> None:
 
 
 @app.command()
+def health() -> None:
+    """Verificar la conectividad con la base configurada."""
+    healthy = IncidentService(repository_factory).check_health()
+    body = (
+        {"status": "ok", "database": "connected"}
+        if healthy
+        else {"status": "error", "database": "unavailable"}
+    )
+    typer.echo(json.dumps(body, ensure_ascii=False))
+    if not healthy:
+        raise typer.Exit(code=1)
+
+
+@app.command()
 def triage(
     incident_id: str = typer.Option(...),
     raw_text: str = typer.Option(...),

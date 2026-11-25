@@ -3,9 +3,10 @@
 from dataclasses import asdict
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse
 
 from src.adapters.inbound.api.schemas import (
-    TriageRequest, TriageResponse, ActiveIncidentsSummaryResponse,
+    HealthResponse, TriageRequest, TriageResponse, ActiveIncidentsSummaryResponse,
     CreateIncidentRequest, IncidentCreatedResponse, SLAEvaluationResponse,
 )
 from src.adapters.outbound.factory import repository_factory
@@ -20,6 +21,12 @@ from src.application.services import (
 def create_app(repo_factory=repository_factory) -> FastAPI:
     app = FastAPI(title="IncidentOps")
     service = IncidentService(repo_factory)
+
+    @app.get("/health", response_model=HealthResponse, responses={503: {"model": HealthResponse}})
+    def health() -> dict | JSONResponse:
+        if service.check_health():
+            return {"status": "ok", "database": "connected"}
+        return JSONResponse(status_code=503, content={"status": "error", "database": "unavailable"})
 
     @app.post("/api/v1/incidents/triage", response_model=TriageResponse)
     def triage(request: TriageRequest) -> dict:

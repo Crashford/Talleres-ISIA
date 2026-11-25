@@ -59,6 +59,15 @@ class IncidentService:
     ) -> None:
         self._repository_factory = repository_factory
 
+    def check_health(self) -> bool:
+        if self._repository_factory is None:
+            return False
+        try:
+            with self._repository_factory() as repo:
+                return repo.check_health()
+        except Exception:
+            return False
+
     def triage_incident(self, incident_id: str, raw_text: str) -> TriageResult:
         if not isinstance(incident_id, str) or not incident_id.strip():
             raise ValidationError("El identificador no puede estar vacío y debe ser texto.")

@@ -5,6 +5,11 @@ from datetime import datetime
 from pydantic import BaseModel, StrictStr
 
 
+class HealthResponse(BaseModel):
+    status: str
+    database: str
+
+
 class TriageRequest(BaseModel):
     incident_id: StrictStr
     raw_text: StrictStr
