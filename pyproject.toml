@@ -10,6 +10,7 @@ dependencies = [
     "uvicorn",
     "pydantic>=2,<3",
     "typer",
+    "psycopg[binary]>=3.3.9",
 ]
 
 [tool.uv]

@@ -4,6 +4,7 @@ Ventana hábil: lunes a viernes [08:00, 18:00), sin feriados configurados.
 La duración se acumula en segundos y se convierte a minutos completos al final.
 """
 
+import re
 from datetime import datetime, time, timedelta
 from typing import Dict
 
@@ -18,6 +19,54 @@ SLA_POLICY_TABLE: Dict[SeverityLevel, SLARule] = {
 
 BUSINESS_START = time(8, 0)
 BUSINESS_END = time(18, 0)
+ISO_DATETIME = re.compile(
+    r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:[.,]\d+)?)?(?:Z|[+-]\d{2}:\d{2})?"
+)
+
+
+def parse_iso_datetime(value: str | datetime) -> datetime:
+    """Convierte una fecha-hora ISO 8601 sin aceptar fechas solas ni formatos libres."""
+    if isinstance(value, datetime):
+        return value
+    if not isinstance(value, str) or not ISO_DATETIME.fullmatch(value):
+        raise ValueError("La fecha-hora debe estar en formato ISO 8601.")
+    normalized = value.removesuffix("Z") + "+00:00" if value.endswith("Z") else value
+    try:
+        return datetime.fromisoformat(normalized.replace(",", "."))
+    except ValueError as error:
+        raise ValueError("La fecha-hora ISO 8601 no es válida.") from error
+
+
+def resolve_created_at(value: str | datetime | None = None) -> datetime:
+    """Usa el instante local aware del entorno cuando el alta omite created_at."""
+    if value is None:
+        return datetime.now().astimezone()
+    return parse_iso_datetime(value)
+
+
+def resolve_reference_time(
+    created_at: str | datetime,
+    reference_time: str | datetime | None = None,
+    severity: SeverityLevel | None = None,
+) -> datetime:
+    """Resuelve una referencia compatible con la convención temporal del incidente."""
+    created = parse_iso_datetime(created_at)
+    if reference_time is None:
+        if created.tzinfo is None:
+            return datetime.now().astimezone().replace(tzinfo=None)
+        return datetime.now().astimezone(created.tzinfo)
+    reference = parse_iso_datetime(reference_time)
+    if (created.tzinfo is None) != (reference.tzinfo is None):
+        raise ValueError("Las fechas deben ser ambas naive o ambas timezone-aware.")
+    if (
+        created.tzinfo is not None
+        and severity in ("P2", "P3")
+        and created.utcoffset() != reference.utcoffset()
+    ):
+        raise ValueError("Las marcas P2/P3 deben usar el mismo offset fijo.")
+    if reference < created:
+        raise ValueError("La referencia no puede ser anterior a la creación.")
+    return reference
 
 
 def get_sla_rule_for_severity(severity: SeverityLevel) -> SLARule:

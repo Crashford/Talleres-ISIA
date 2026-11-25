@@ -116,11 +116,12 @@ def test_repository_port_and_sql(tmp_path):
         assert isinstance(repo, IncidentRepositoryPort)
         assert repo.check_health()
         a = make_incident("A")
-        repo.save_incident(a, "key")
+        a.duplicate_group_key = "key"
+        repo.save_incident(a)
         repo.save_incident(make_incident("B", status="RESOLVED", resolved=REF), "key")
         assert repo.get_incident("A") == a
         assert repo.get_incident("missing") is None
-        assert repo.find_open_duplicates("key") == [a]
+        assert repo.find_open_duplicates("key") == [a.incident_id]
         statements = []
         repo.conn.set_trace_callback(statements.append)
         assert repo.list_active_incidents("payments-gateway") == [a]
